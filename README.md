@@ -3,6 +3,7 @@ Pocketbase Auth Library
 
 Currently supports the following:
 
+* pocketbase 0.8.0
 * Header Auth
 * `/api/me` endpoint for current user
 

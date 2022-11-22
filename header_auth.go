@@ -30,35 +30,24 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 	)
 }
 
-func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.User {
+func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
 	email := config.GetEmailFromHeader(c.Request().Header)
-	user, err := app.Dao().FindUserByEmail(email)
+	name := config.GetNameFromHeader(c.Request().Header)
+	user, err := app.Dao().FindAuthRecordByEmail("users", email)
+	user.Username()
 	if err != nil {
 		if config.AutoCreateUser && email != "" {
 			// create user
-			user = &models.User{}
-			user.Email = email
-			user.Verified = true
+			user = &models.Record{}
+			user.Set("email", email)
+			user.SetVerified(true)
+			user.SetUsername(name)
 			user.RefreshTokenKey()
-			app.Dao().SaveUser(user)
+			app.Dao().Save(user)
 
 			fmt.Println("User", user.Email, "created")
 		} else {
 			return nil
-		}
-	}
-
-	if config.AutoCreateUser {
-		// update user's name if changed
-		name := config.GetNameFromHeader(c.Request().Header)
-		if config.ForceName != "" {
-			name = config.ForceName
-		}
-		if name != "" && name != user.Profile.GetStringDataValue("name") {
-			user.Profile.SetDataValue("name", name)
-			app.Dao().SaveRecord(user.Profile)
-
-			fmt.Println("User", user.Email, "profile name updated to", name)
 		}
 	}
 	return user
@@ -74,12 +63,12 @@ func authViaHeader(app core.App, config HeaderAuthConfig) echo.MiddlewareFunc {
 					// check for admin
 					admin, _ := app.Dao().FindAdminByEmail(email)
 					if admin != nil {
-						c.Set(apis.ContextAdminKey, admin)
+						c.Set("admin", admin)
 					}
 
 					// check for user
 					if user := authenticateUser(app, c, config); user != nil {
-						c.Set(apis.ContextUserKey, user)
+						c.Set("user", user)
 					}
 				}
 			}
@@ -126,26 +115,26 @@ func overwriteUserEmailAuth(app core.App) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if c.Request().Method == "POST" && c.Request().RequestURI == "/api/users/auth-via-email" {
-				user, _ := c.Get(apis.ContextUserKey).(*models.User)
+				user, _ := c.Get("user").(*models.Record)
 				if user == nil {
 					return next(c)
 				}
 
-				token, tokenErr := tokens.NewUserAuthToken(app, user)
+				token, tokenErr := tokens.NewRecordAuthToken(app, user)
 				if tokenErr != nil {
 					return next(c)
 				}
 
-				event := &core.UserAuthEvent{
+				event := &core.RecordAuthEvent{
 					HttpContext: c,
-					User:        user,
+					Record:      user,
 					Token:       token,
 				}
 
-				return app.OnUserAuthRequest().Trigger(event, func(e *core.UserAuthEvent) error {
+				return app.OnRecordAuthRequest().Trigger(event, func(e *core.RecordAuthEvent) error {
 					return e.HttpContext.JSON(200, map[string]any{
-						"token": e.Token,
-						"user":  e.User,
+						"token":  e.Token,
+						"record": e.Record,
 					})
 				})
 			}
