@@ -25,7 +25,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	auth "github.com/kennethklee/pb-auth"
+	"github.com/kennethklee/pb-auth"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 )

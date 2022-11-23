@@ -33,19 +33,20 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
 	email := config.GetEmailFromHeader(c.Request().Header)
 	name := config.GetNameFromHeader(c.Request().Header)
+	users, _ := app.Dao().FindCollectionByNameOrId("users")
 	user, err := app.Dao().FindAuthRecordByEmail("users", email)
-	user.Username()
+
 	if err != nil {
 		if config.AutoCreateUser && email != "" {
 			// create user
-			user = &models.Record{}
-			user.Set("email", email)
+			user = models.NewRecord(users)
+			user.SetEmail(email)
 			user.SetVerified(true)
 			user.SetUsername(name)
 			user.RefreshTokenKey()
 			app.Dao().Save(user)
 
-			fmt.Println("User", user.Email, "created")
+			fmt.Println("User", user.GetString("email"), "created")
 		} else {
 			return nil
 		}
@@ -81,7 +82,7 @@ func authViaHeader(app core.App, config HeaderAuthConfig) echo.MiddlewareFunc {
 func overwriteAdminEmailAuth(app core.App) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().Method == "POST" && c.Request().RequestURI == "/api/admins/auth-via-email" {
+			if c.Request().Method == "POST" && c.Request().RequestURI == "/api/admins/auth-with-password" {
 				admin, _ := c.Get(apis.ContextAdminKey).(*models.Admin)
 				if admin == nil {
 					return next(c)
@@ -114,7 +115,7 @@ func overwriteAdminEmailAuth(app core.App) echo.MiddlewareFunc {
 func overwriteUserEmailAuth(app core.App) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().Method == "POST" && c.Request().RequestURI == "/api/users/auth-via-email" {
+			if c.Request().Method == "POST" && c.Request().RequestURI == "/api/collections/users/auth-with-password" {
 				user, _ := c.Get("user").(*models.Record)
 				if user == nil {
 					return next(c)
