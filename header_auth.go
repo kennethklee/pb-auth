@@ -42,7 +42,7 @@ func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *mo
 			user = models.NewRecord(users)
 			user.SetEmail(email)
 			user.SetVerified(true)
-			user.SetUsername(name)
+			user.Set("name", name)
 			user.RefreshTokenKey()
 			app.Dao().Save(user)
 
