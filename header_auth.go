@@ -22,6 +22,7 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 	if !config.IsValid() {
 		return
 	}
+
 	router.Pre(
 		authViaHeader(app, config), // authenticate admin & user requests
 
@@ -44,7 +45,7 @@ func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *mo
 			user.SetEmail(email)
 			user.SetVerified(true)
 
-			baseUsername := "user" + security.RandomStringWithAlphabet(5, "123456789")
+			baseUsername := users.Name + security.RandomStringWithAlphabet(5, "123456789")
 			user.SetUsername(app.Dao().SuggestUniqueAuthRecordUsername(users.Id, baseUsername))
 
 			user.Set("name", name)
