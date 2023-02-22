@@ -9,6 +9,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tokens"
+	"github.com/pocketbase/pocketbase/tools/security"
 )
 
 /*
@@ -42,9 +43,16 @@ func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *mo
 			user = models.NewRecord(users)
 			user.SetEmail(email)
 			user.SetVerified(true)
+
+			baseUsername := "user" + security.RandomStringWithAlphabet(5, "123456789")
+			user.SetUsername(app.Dao().SuggestUniqueAuthRecordUsername(users.Id, baseUsername))
+
 			user.Set("name", name)
 			user.RefreshTokenKey()
-			app.Dao().Save(user)
+			if err := app.Dao().Save(user); err != nil {
+				fmt.Println("Error creating user,", email, err)
+				return nil
+			}
 
 			fmt.Println("User", user.GetString("email"), "created")
 		} else {
