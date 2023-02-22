@@ -11,11 +11,13 @@ func main() {
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		auth.InstallHeaderAuth(app, e.Router, auth.HeaderAuthConfig{
-			NameHeader:  "X-Forwarded-User",
-			EmailHeader: "X-Forwarded-Email",
+			NameHeader:     "X-Forwarded-User",
+			EmailHeader:    "X-Forwarded-Email",
+			AutoCreateUser: true,
 
-			ForceEmail: "test@test.com",
-			ForceName:  "Test Admin",
+			ForceEmail:    "test@test.com",
+			ForceName:     "Test Admin",
+			ForceUsername: "testadmin",
 		})
 		auth.InstallAPIMeEndpoint(e.Router)
 		return nil

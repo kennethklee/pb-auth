@@ -34,21 +34,31 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 
 func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
 	email := config.GetEmailFromHeader(c.Request().Header)
-	name := config.GetNameFromHeader(c.Request().Header)
+	
 	users, _ := app.Dao().FindCollectionByNameOrId("users")
 	user, err := app.Dao().FindAuthRecordByEmail("users", email)
-
 	if err != nil {
 		if config.AutoCreateUser && email != "" {
+			name := config.GetNameFromHeader(c.Request().Header)
+			fields := config.GetFieldsFromHeader(c.Request().Header)
+
 			// create user
 			user = models.NewRecord(users)
 			user.SetEmail(email)
 			user.SetVerified(true)
-
-			baseUsername := users.Name + security.RandomStringWithAlphabet(5, "123456789")
-			user.SetUsername(app.Dao().SuggestUniqueAuthRecordUsername(users.Id, baseUsername))
-
 			user.Set("name", name)
+
+			// set fields
+			for field, header := range fields {
+				user.Set(field, header)
+			}
+
+			// check for username in fields
+			if _, ok := fields["username"]; !ok {
+				baseUsername := users.Name + security.RandomStringWithAlphabet(5, "123456789")
+				user.SetUsername(app.Dao().SuggestUniqueAuthRecordUsername(users.Id, baseUsername))
+			}
+
 			user.RefreshTokenKey()
 			if err := app.Dao().Save(user); err != nil {
 				fmt.Println("Error creating user,", email, err)

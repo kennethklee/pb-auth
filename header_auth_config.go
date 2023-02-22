@@ -15,22 +15,33 @@ type HeaderAuthConfig struct {
 	// If true, automatically create a user if they don't exist.
 	AutoCreateUser bool
 
+	// If AutoCreateUser is true, this is a map of the user's fields to the header
+	AutoCreateFieldMapping map[string]string
+
 	// Dev only: Force the email address to this value.
 	ForceEmail string
 
 	// Dev only: Force the name to this value.
 	ForceName string
+
+	// Dev only: Force the username to this value.
+	ForceUsername string
 }
 
 func HeaderAuthConfigFromEnv() HeaderAuthConfig {
 	return HeaderAuthConfig{
-		EmailHeader:    os.Getenv("HEADER_AUTH_EMAIL"),
-		NameHeader:     os.Getenv("HEADER_AUTH_NAME"),
+		EmailHeader: os.Getenv("HEADER_AUTH_EMAIL"),
+		NameHeader:  os.Getenv("HEADER_AUTH_NAME"),
+
 		AutoCreateUser: os.Getenv("AUTO_CREATE_USER") != "",
+		AutoCreateFieldMapping: map[string]string{
+			"username": os.Getenv("HEADER_AUTH_USERNAME"),
+		},
 
 		// Development only options
-		ForceEmail: os.Getenv("FORCE_EMAIL"),
-		ForceName:  os.Getenv("FORCE_NAME"),
+		ForceEmail:    os.Getenv("FORCE_EMAIL"),
+		ForceName:     os.Getenv("FORCE_NAME"),
+		ForceUsername: os.Getenv("FORCE_USERNAME"),
 	}
 }
 
@@ -64,4 +75,16 @@ func (config *HeaderAuthConfig) GetEmailFromHeader(reqHeader http.Header) string
 		email = config.ForceEmail
 	}
 	return email
+}
+
+func (config *HeaderAuthConfig) GetFieldsFromHeader(reqHeader http.Header) map[string]string {
+	fields := make(map[string]string)
+	for field, header := range config.AutoCreateFieldMapping {
+		fields[field] = reqHeader.Get(header)
+	}
+
+	if config.ForceUsername != "" {
+		fields["username"] = config.ForceUsername
+	}
+	return fields
 }
