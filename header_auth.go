@@ -34,7 +34,7 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 
 func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
 	email := config.GetEmailFromHeader(c.Request().Header)
-	
+
 	users, _ := app.Dao().FindCollectionByNameOrId("users")
 	user, err := app.Dao().FindAuthRecordByEmail("users", email)
 	if err != nil {
@@ -48,13 +48,14 @@ func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *mo
 			user.SetVerified(true)
 			user.Set("name", name)
 
-			// set fields
-			for field, header := range fields {
-				user.Set(field, header)
+			// set user data
+			fmt.Println(fields)
+			for field, value := range fields {
+				user.Set(field, value)
 			}
 
 			// check for username in fields
-			if _, ok := fields["username"]; !ok {
+			if user.Username() == "" {
 				baseUsername := users.Name + security.RandomStringWithAlphabet(5, "123456789")
 				user.SetUsername(app.Dao().SuggestUniqueAuthRecordUsername(users.Id, baseUsername))
 			}

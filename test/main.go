@@ -14,10 +14,13 @@ func main() {
 			NameHeader:     "X-Forwarded-User",
 			EmailHeader:    "X-Forwarded-Email",
 			AutoCreateUser: true,
+			AutoCreateFieldMapping: map[string]string{
+				"username": "X-Forwarded-Username",
+			},
 
-			ForceEmail:    "test@test.com",
-			ForceName:     "Test Admin",
-			ForceUsername: "testadmin",
+			ForceEmail: "test@test.com",
+			ForceName:  "Test Admin",
+			// ForceUsername: "testadmin",
 		})
 		auth.InstallAPIMeEndpoint(e.Router)
 		return nil
