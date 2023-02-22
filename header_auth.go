@@ -49,7 +49,6 @@ func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *mo
 			user.Set("name", name)
 
 			// set user data
-			fmt.Println(fields)
 			for field, value := range fields {
 				user.Set(field, value)
 			}
