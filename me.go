@@ -9,9 +9,9 @@ import (
 func InstallAPIMeEndpoint(router *echo.Echo) {
 	router.GET("/api/me", func(c echo.Context) error {
 		if c.Get(apis.ContextAdminKey) != nil {
-			return c.JSON(200, c.Get("admin"))
+			return c.JSON(200, c.Get(apis.ContextAdminKey))
 		} else {
-			return c.JSON(200, c.Get("user"))
+			return c.JSON(200, c.Get(apis.ContextAuthRecordKey))
 		}
 	})
 }
