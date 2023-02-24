@@ -83,12 +83,12 @@ func authViaHeader(app core.App, config HeaderAuthConfig) echo.MiddlewareFunc {
 					// check for admin
 					admin, _ := app.Dao().FindAdminByEmail(email)
 					if admin != nil {
-						c.Set("admin", admin)
+						c.Set(apis.ContextAdminKey, admin)
 					}
 
 					// check for user
 					if user := authenticateUser(app, c, config); user != nil {
-						c.Set("user", user)
+						c.Set(apis.ContextAuthRecordKey, user)
 					}
 				}
 			}
