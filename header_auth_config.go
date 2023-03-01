@@ -12,6 +12,9 @@ type HeaderAuthConfig struct {
 	// The header name that contains the user's name.
 	NameHeader string
 
+	// Checks for admin users first
+	AdminLogin bool
+
 	// If true, automatically create a user if they don't exist.
 	AutoCreateUser bool
 
@@ -32,6 +35,7 @@ func HeaderAuthConfigFromEnv() HeaderAuthConfig {
 	return HeaderAuthConfig{
 		EmailHeader: os.Getenv("HEADER_AUTH_EMAIL"),
 		NameHeader:  os.Getenv("HEADER_AUTH_NAME"),
+		AdminLogin:  os.Getenv("HEADER_AUTH_ADMIN_LOGIN") != "",
 
 		AutoCreateUser: os.Getenv("AUTO_CREATE_USER") != "",
 		AutoCreateFieldMapping: map[string]string{

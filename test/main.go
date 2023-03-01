@@ -6,13 +6,17 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+// My lazy manual test
+
 func main() {
 	var app = pocketbase.New()
 
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		auth.InstallHeaderAuth(app, e.Router, auth.HeaderAuthConfig{
-			NameHeader:     "X-Forwarded-User",
-			EmailHeader:    "X-Forwarded-Email",
+			NameHeader:  "X-Forwarded-User",
+			EmailHeader: "X-Forwarded-Email",
+			AdminLogin:  false,
+
 			AutoCreateUser: true,
 			AutoCreateFieldMapping: map[string]string{
 				"username": "X-Forwarded-Username",

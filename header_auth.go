@@ -80,10 +80,12 @@ func authViaHeader(app core.App, config HeaderAuthConfig) echo.MiddlewareFunc {
 			if strings.HasPrefix(c.Request().RequestURI, "/api/") {
 				email := config.GetEmailFromHeader(c.Request().Header)
 				if email != "" {
-					// check for admin
-					admin, _ := app.Dao().FindAdminByEmail(email)
-					if admin != nil {
-						c.Set(apis.ContextAdminKey, admin)
+					if config.AdminLogin {
+						// check for admin
+						admin, _ := app.Dao().FindAdminByEmail(email)
+						if admin != nil {
+							c.Set(apis.ContextAdminKey, admin)
+						}
 					}
 
 					// check for user
