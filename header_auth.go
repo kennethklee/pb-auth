@@ -32,7 +32,11 @@ func InstallHeaderAuth(app core.App, router *echo.Echo, config HeaderAuthConfig)
 	)
 }
 
-func authenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
+/*
+AuthenticateUser is a helper function that authenticates a user via email.
+If the user doesn't exist, it will optionally create a new user (HeaderAuthConfig.AutoCreateUser).
+*/
+func AuthenticateUser(app core.App, c echo.Context, config HeaderAuthConfig) *models.Record {
 	email := config.GetEmailFromHeader(c.Request().Header)
 
 	users, _ := app.Dao().FindCollectionByNameOrId("users")
@@ -89,7 +93,7 @@ func authViaHeader(app core.App, config HeaderAuthConfig) echo.MiddlewareFunc {
 					}
 
 					// check for user
-					if user := authenticateUser(app, c, config); user != nil {
+					if user := AuthenticateUser(app, c, config); user != nil {
 						c.Set(apis.ContextAuthRecordKey, user)
 					}
 				}
